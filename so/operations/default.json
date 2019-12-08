@@ -3,5 +3,247 @@
       "operation-type": "bulk",
       "bulk-size": {{bulk_size | default(5000)}},
       "ingest-percentage": {{ingest_percentage | default(100)}}
+    },
+    {
+      "name": "index-update",
+      "operation-type": "bulk",
+      "bulk-size": {{bulk_size | default(5000)}},
+      "ingest-percentage": {{ingest_percentage | default(100)}},
+      "conflicts": "{{conflicts | default('random')}}",
+      "on-conflict": "{{on_conflict | default('index')}}",
+      "conflict-probability": {{conflict_probability | default(25)}},
+      "recency": {{recency | default(0)}}
+    },
+    {
+      "name": "default",
+      "operation-type": "search",
+      "body": {
+        "query": {
+          "match_all": {}
+        }
+      }
+    },
+    {
+      "name": "term",
+      "operation-type": "search",
+      "body": {
+        "query": {
+          "term": {
+            "tags": "java"
+          }
+        }
+      }
+    },
+    {
+      "name": "phrase",
+      "operation-type": "search",
+      "body": {
+        "query": {
+          "match_phrase": {
+            "body": "connection timeout"
+          }
+        }
+      }
+    },
+    {
+      "name": "tags_agg_uncached",
+      "operation-type": "search",
+      "body": {
+        "size": 0,
+        "aggs": {
+          "tags_agg": {
+            "terms": {
+              "field": "tags"
+            },
+            "aggs": {
+              "recent_time": {
+                "max": {
+                  "field": "creationDate"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "tags_agg_cached",
+      "operation-type": "search",
+      "cache": true,
+      "body": {
+        "size": 0,
+        "aggs": {
+        "tags_agg": {
+          "terms": {
+            "field": "tags"
+            },
+          "aggs": {
+            "recent_time": {
+              "max": {
+                "field": "creationDate"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "scroll",
+      "operation-type": "search",
+      "pages": 25,
+      "results-per-page": 1000,
+      "body": {
+        "query": {
+          "match_all": {}
+        }
+      }
+    },
+    {
+      "name": "large_terms",
+      "operation-type": "search",
+      "param-source": "pure-terms-query-source"
+    },
+    {
+      "name": "large_filtered_terms",
+      "operation-type": "search",
+      "param-source": "filtered-terms-query-source"
+    },
+    {
+      "name": "large_prohibited_terms",
+      "operation-type": "search",
+      "param-source": "prohibited-terms-query-source"
+    },
+    {
+      "name": "desc_sort_creationDate",
+      "operation-type": "search",
+      "body": {
+        "query": {
+          "match_all": {}
+        },
+        "sort" : [
+          {"creationDate" : "desc"}
+        ]
+      }
+    },
+    {
+      "name": "asc_sort_creationDate",
+      "operation-type": "search",
+      "body": {
+        "query": {
+          "match_all": {}
+        },
+        "sort" : [
+          {"creationDate" : "asc"}
+        ]
+      }
+    },
+    {
+      "name": "default_unlimited",
+      "operation-type": "search",
+      "body": {
+      "query": {
+        "match_all": {}
+      }
     }
-    
+    },
+    {
+      "name": "term_unlimited",
+      "operation-type": "search",
+      "body": {
+        "query": {
+          "term": {
+            "tags": "java"
+          }
+        }
+      }
+    },
+    {
+      "name": "phrase_unlimited",
+      "operation-type": "search",
+      "body": {
+        "query": {
+          "match_phrase": {
+            "body": "connection timeout"
+          }
+        }
+      }
+    },
+    {
+      "name": "tags_agg_uncached_unlimited",
+      "operation-type": "search",
+      "body": {
+        "size": 0,
+        "aggs": {
+          "tags_agg": {
+            "terms": {
+              "field": "tags"
+            },
+            "aggs": {
+              "recent_time": {
+                "max": {
+                  "field": "creationDate"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "tags_agg_cached_unlimited",
+      "operation-type": "search",
+      "cache": true,
+      "body": {
+        "size": 0,
+        "aggs": {
+          "tags_agg": {
+            "terms": {
+              "field": "tags"
+            },
+            "aggs": {
+              "recent_time": {
+                "max": {
+                  "field": "creationDate"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "scroll_unlimited",
+      "operation-type": "search",
+      "pages": 25,
+      "results-per-page": 1000,
+      "body": {
+        "query": {
+          "match_all": {}
+        }
+      }
+    },
+    {
+      "name": "desc_sort_creationDate_unlimited",
+      "operation-type": "search",
+      "body": {
+        "query": {
+          "match_all": {}
+        },
+        "sort" : [
+          {"creationDate" : "desc"}
+        ]
+      }
+    },
+    {
+      "name": "asc_sort_creationDate_unlimited",
+      "operation-type": "search",
+      "body": {
+        "query": {
+          "match_all": {}
+        },
+        "sort" : [
+          {"creationDate" : "asc"}
+        ]
+      }
+    }

@@ -1,7 +1,7 @@
     {
       "name": "append-no-conflicts",
       "description": "Indexes the whole document corpus using Elasticsearch default settings. We only adjust the number of replicas as we benchmark a single node cluster and Rally will only start the benchmark if the cluster turns green. Document ids are unique so all index operations are append only.",
-      "default": true,
+      "default": false,
       "schedule": [
         {
           "operation": "delete-index"
@@ -31,6 +31,162 @@
         {
           "operation": "force-merge",
           "clients": 1
+        }
+      ]
+    },
+    {
+      "name": "default-test",
+      "description": "default test",
+      "default": true,
+      "schedule": [
+        {
+          "operation": "delete-index"
+        },
+        {
+          "operation": {
+            "operation-type": "create-index",
+            "settings": {{index_settings | default({}) | tojson}}
+          }
+        },
+        {
+          "name": "check-cluster-health",
+          "operation": {
+            "operation-type": "cluster-health",
+            "index": "logs-*",
+            "request-params": {
+              "wait_for_status": "{{cluster_health | default('green')}}",
+              "wait_for_no_relocating_shards": "true"
+            }
+          }
+        },
+        {
+          "operation": "index-append",
+          "warmup-time-period": 120,
+          "clients": {{bulk_clients | default(8)}}
+        },
+        {
+          "name": "refresh-after-index",
+          "operation": "refresh",
+          "clients": 1
+        },
+        {
+          "operation": "force-merge",
+          "clients": 1
+        },
+        {
+          "name": "refresh-after-force-merge",
+          "operation": "refresh",
+          "clients": 1
+        },
+        {
+          "operation": "index-stats",
+          "clients": 1,
+          "warmup-iterations": 100,
+          "iterations": 1000,
+          "target-throughput": 90
+        },
+        {
+          "operation": "node-stats",
+          "clients": 1,
+          "warmup-iterations": 100,
+          "iterations": 1000,
+          "target-throughput": 90
+        },
+        {
+          "parallel": {
+            "tasks": [
+              {
+                "operation": "default",
+                "clients": 1,
+                "warmup-iterations": 200,
+                "iterations": 2000,
+                "target-throughput": 5
+              },
+              {
+                "operation": "term",
+                "clients": 1,
+                "warmup-iterations": 200,
+                "iterations": 2000,
+                "target-throughput": 5
+              },
+              {
+                "operation": "phrase",
+                "clients": 1,
+                "warmup-iterations": 200,
+                "iterations": 2000,
+                "target-throughput": 5
+              },
+              {
+                "operation": "tags_agg_uncached",
+                "clients": 1,
+                "warmup-iterations": 200,
+                "iterations": 2000,
+                "target-throughput": 5
+              },
+              {
+                "operation": "tags_agg_cached",
+                "clients": 1,
+                "warmup-iterations": 200,
+                "iterations": 2000,
+                "target-throughput": 5
+              },
+              {
+                "operation": "scroll",
+                "clients": 1,
+                "warmup-iterations": 200,
+                "iterations": 400,
+                "#COMMENT": "Throughput is considered per request. So we issue one scroll request per second which will retrieve 25 pages",
+                "target-throughput": 1
+              },
+              {
+                "operation": "desc_sort_creationDate",
+                "clients": 1,
+                "warmup-iterations": 200,
+                "iterations": 2000,
+                "target-throughput": 5
+              },
+              {
+                "operation": "asc_sort_creationDate",
+                "clients": 1,
+                "warmup-iterations": 200,
+                "iterations": 2000,
+                "target-throughput": 5
+              }
+            ]
+          }
+        },
+        {
+          "parallel": {
+            "warmup-time-period": 120,
+            "time-period": 1200,
+            "clients": {{search_clients | default(8)}}
+            "tasks": [
+              {
+                "operation": "default_unlimited"
+              },
+              {
+                "operation": "term_unlimited"
+              },
+              {
+                "operation": "phrase_unlimited"
+              },
+              {
+                "operation": "tags_agg_uncached_unlimited"
+              },
+              {
+                "operation": "tags_agg_cached_unlimited"
+              },
+              {
+                "operation": "scroll_unlimited"
+              },
+              {
+                "operation": "desc_sort_creationDate_unlimited"
+              },
+              {
+                "operation": "asc_sort_creationDate_unlimited"
+              }
+            ]
+          }
         }
       ]
     }
