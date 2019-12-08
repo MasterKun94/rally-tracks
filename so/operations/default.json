@@ -142,10 +142,10 @@
       "name": "default_unlimited",
       "operation-type": "search",
       "body": {
-      "query": {
-        "match_all": {}
+        "query": {
+          "match_all": {}
+        }
       }
-    }
     },
     {
       "name": "term_unlimited",
